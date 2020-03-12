@@ -6,7 +6,7 @@
 //
 // A prime example of this happening would be a web-service which is designed
 // to fetch a document then convert it to PDF.  If the user requests a URL
-// such as `http://localhost/server-status` they would recieve a pretty PDF
+// such as `http://localhost/server-status` they would receive a pretty PDF
 // version of private information to which they should not be able to access.
 //
 // Of course you must make sure that users don't request `file://`,
