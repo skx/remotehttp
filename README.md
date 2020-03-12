@@ -27,6 +27,8 @@ This package allows you to __prevent__ these inputs from being processed, easily
 
 ## Using It
 
+Sample usage can be found in [remotehttp_example_test.go](remotehttp_example_test.go).
+
 
 
 # Downsides?
