@@ -1,5 +1,5 @@
 [![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=blue)](https://pkg.go.dev/github.com/skx/remotehttp)
-[![Go Report Card](https://goreportcard.com/badge/github.com/skx/remotehttp)](https://goreportcard.com/report/github.com/skx/remothttp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/skx/remotehttp)](https://goreportcard.com/report/github.com/skx/remotehttp)
 [![license](https://img.shields.io/github/license/skx/remotehttp.svg)](https://github.com/skx/remotehttp/blob/master/LICENSE)
 
 # remotehttp
