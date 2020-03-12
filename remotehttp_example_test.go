@@ -13,11 +13,9 @@ func Example() {
 	// The URL we're fetching
 	url := "http://localhost/server-status"
 
-	transport := Transport
-
 	// Make a HTTP-client with our transport.
 	var netClient = &http.Client{
-		Transport: transport,
+		Transport: Transport(),
 		Timeout:   5 * time.Second,
 	}
 

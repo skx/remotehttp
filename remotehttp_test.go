@@ -17,10 +17,8 @@ func TestLocalURLs(t *testing.T) {
 		"http://[fe80::1]:6379/",
 	}
 
-	transport := Transport
-
 	var netClient = &http.Client{
-		Transport: transport,
+		Transport: Transport(),
 		Timeout:   5 * time.Second,
 	}
 

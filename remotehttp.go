@@ -54,17 +54,17 @@ func _isLocalIP(ip string) error {
 	return nil
 }
 
-var (
-	// Transport is our exported http.Transport object.
-	//
-	// This is the sole interface to this library, and it is
-	// designed to automatically deny connections which have
-	// been established to "local" resources.
-	//
-	// You may modify the transport as you wish, once you've received
-	// it.  However note that the DialContext and DialTLS fields should
-	// not be modified, or our protection is removed.
-	Transport = &http.Transport{
+// Transport is our exported http.Transport object.
+//
+// This is the sole interface to this library, and it is
+// designed to automatically deny connections which have
+// been established to "local" resources.
+//
+// You may modify the transport as you wish, once you've received
+// it.  However note that the DialContext and DialTLS fields should
+// not be modified, or our protection is removed.
+func Transport() *http.Transport {
+	return &http.Transport{
 		Dial: (&net.Dialer{
 			Timeout:   30 * time.Second,
 			KeepAlive: 30 * time.Second,
@@ -115,4 +115,4 @@ var (
 		TLSHandshakeTimeout:   5 * time.Second,
 		ResponseHeaderTimeout: 5 * time.Second,
 	}
-)
+}
