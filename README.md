@@ -30,13 +30,13 @@ This package allows you to __prevent__ these inputs from being processed, easily
 Sample usage can be found in [remotehttp_example_test.go](remotehttp_example_test.go).
 
 
+## Other considerations
 
-# Downsides?
+This wrapper-library only considers the case of `http` and `https` schemas; if you're accepting URIs of your own you should absolutely sanity-check you've not been given something with a `file://`, or `ftp://` prefix (and more!)
 
-The only obvious downside I can see is that we have to actually _establish_ a connection to the remote host, before we know where we went.
+Other things you'll want to consider:
 
-Connecting, then checking, is not ideal but there is no sane alternative.
-
-(Rsolving the hostname of a user-supplied URL, then testing that against a whitelist/blacklist, is not sufficient because the DNS address might change after it has been tested, but before it has been used - i.e. race-condition.)
+* Resource limits such as timeout-handling.
+* Resource limits such as whether to follow redirections, and if so how many.
 
 Steve
