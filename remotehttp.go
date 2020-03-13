@@ -95,24 +95,38 @@ func _checker(ctx context.Context, dialler *net.Dialer, network, addr string) (n
 		if ip.To16() != nil && ip.To4() == nil {
 			target = fmt.Sprintf("[%s]:%s", ip, port)
 		}
+
+		// If the IP was bad we'll have terminated already
+		//
+		// So if we managed to get here we found (at least) 1 valid IP.
+		//
+		// We'll walk over each IP; so if `example.com` resolves
+		// to 1.2.3.4 and 1.2.3.6 we'll try each of them in turn.
+		//
+		// Importantly here we're using `target` to specify the resolved
+		// address we've confirmed is safe.
+		//
+		con, err := dialler.DialContext(ctx, network, target)
+		if err == nil {
+			// No error?  Then we're good and we return the
+			// connection to the caller.
+			return con, err
+		}
 	}
 
-	// If the IP was bad we'll have terminated already
 	//
-	// If we got here we found (at least) one valid IP.
+	// If we got here then:
 	//
-	// NOTE: We'll essentially use the "last" DNS entry which was
-	// returned, as we update the `target` each time we process
-	// a DNS result.
+	//  a) We didn't resolve the host.
 	//
-	// So if `example.com` resolves to 1.2.3.4 and 1.2.3.6 we'll
-	// be using the second version.
-	//
-	// TODO: Perhaps randomize results?
-	//
-	// Importantly here we're using `target` to specify the resolved
-	// address we've confirmed is safe.
-	return dialler.DialContext(ctx, network, target)
+	//  b) We resolved the host, but connecting to any (valid) IP
+	//     failed
+	if len(ips) < 1 {
+		return nil, fmt.Errorf("failed to resolve host from %s", addr)
+	}
+
+	// Failed to connect
+	return nil, fmt.Errorf("failed to connect to %s", addr)
 }
 
 // Transport returns our wrapped http.Transport object.
