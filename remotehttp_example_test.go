@@ -3,6 +3,7 @@ package remotehttp
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -29,8 +30,24 @@ func Example() {
 	// Make the (GET) request
 	_, err = netClient.Do(req)
 	if err != nil {
-		fmt.Printf("ERROR:%s\n", err.Error())
+
+		//
+		// Remove "::1" and "127.0.0.1" in our error-message.
+		//
+		// Because we could get two different errors:
+		//
+		//    ip address ::1 is denied as local
+		//    ip address 127.0.0.1 is denied as local
+		//
+		// We want to be stable, and work regardless of what the
+		// local testing-system returns.
+		//
+		out := err.Error()
+		out = strings.ReplaceAll(out, "127.0.0.1 ", "")
+		out = strings.ReplaceAll(out, "::1 ", "")
+
+		fmt.Printf("ERROR:%s\n", out)
 	}
 	// Output:
-	// ERROR:Get "http://localhost/server-status": ip address 127.0.0.1 is denied as local
+	// ERROR:Get "http://localhost/server-status": ip address is denied as local
 }
