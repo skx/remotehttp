@@ -57,7 +57,7 @@ func _isLocalIP(IP net.IP) error {
 //   that we use the returned IP address explicitly.  This ensures we don't
 //   have a time-of-check-time-of-use-race
 //
-func _checker(dialler *net.Dialer, ctx context.Context, network, addr string) (net.Conn, error) {
+func _checker(ctx context.Context, dialler *net.Dialer, network, addr string) (net.Conn, error) {
 
 	// Split the address into host/port
 	host, port, err := net.SplitHostPort(addr)
@@ -139,7 +139,7 @@ func Transport() *http.Transport {
 
 		// Setup the connection helper
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
-			return (_checker(dialler, ctx, network, addr))
+			return (_checker(ctx, dialler, network, addr))
 		},
 
 		// Setup a simple timeout
