@@ -126,6 +126,7 @@ func Transport() *http.Transport {
 
 	// Setup a timeout in our dialler; though the user could change this.
 	dialler := &net.Dialer{
+		DualStack: true,
 		Timeout:   30 * time.Second,
 		KeepAlive: 30 * time.Second,
 	}
