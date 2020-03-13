@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// Test fetching remote things we shouldn't is denied.
 func TestLocalURLs(t *testing.T) {
 
 	// Local resources we should never fetch
@@ -35,6 +36,37 @@ func TestLocalURLs(t *testing.T) {
 		_, err = netClient.Do(req)
 		if err == nil {
 			t.Fatalf("Expected error requesting %s - expected to be denied", url)
+		}
+	}
+}
+
+// Test fetching resources that are valid is OK
+func TestRemoteURLs(t *testing.T) {
+
+	// These are random-sites that are fine to access.
+	tests := []string{"http://steve.fi/",
+		"http://example.com",
+		"https://news.bbc.co.uk/",
+	}
+
+	var netClient = &http.Client{
+		Transport: Transport(),
+		Timeout:   5 * time.Second,
+	}
+
+	for _, url := range tests {
+
+		// Prepare
+		req, err := http.NewRequest("GET", url, nil)
+
+		if err != nil {
+			t.Fatalf("Unexpected error requesting %s %s", url, err.Error())
+		}
+
+		// Fetch
+		_, err = netClient.Do(req)
+		if err != nil {
+			t.Fatalf("Didn't expect error; %s - %s", url, err.Error())
 		}
 	}
 }
