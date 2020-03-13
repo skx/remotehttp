@@ -23,14 +23,33 @@ import (
 func _isLocalIP(IP net.IP) error {
 
 	for _, cidr := range []string{
-		"127.0.0.0/8",    // IPv4 loopback
+		// IPv4
 		"10.0.0.0/8",     // RFC1918
-		"172.16.0.0/12",  // RFC1918
-		"192.168.0.0/16", // RFC1918
+		"100.64.0.0/10",  // RFC 6598
+		"127.0.0.0/8",    // IPv4 loopback
 		"169.254.0.0/16", // RFC3927 link-local
-		"::1/128",        // IPv6 loopback
-		"fe80::/10",      // IPv6 link-local
-		"fc00::/7",       // IPv6 unique local addr
+		"172.16.0.0/12",  // RFC1918
+		"192.0.0.0/24",   //  RFC 5736
+		"192.0.2.0/24",   // RFC 5737
+		"192.168.0.0/16", // RFC1918
+		"192.18.0.0/15",  // RFC 2544
+		"192.88.99.0/24", // RFC 3068
+		"198.51.100.0/24",
+		"203.0.113.0/24",
+		"224.0.0.0/4",        // RFC 3171
+		"255.255.255.255/32", // RFC 919 Section 7
+
+		// IPv6
+		"::/128",        //RFC 4291: Unspecified Address
+		"100::/64",      // RFC 6666: Discard Address Block
+		"2001:2::/48",   // RFC 5180: Benchmarking
+		"2001::/23",     //RFC 2928: IETF Protocol Assignments
+		"2001::/32",     //RFC 4380: TEREDO
+		"2001:db8::/32", // RFC 3849: Documentation
+		"::1/128",       // RFC 4291: Loopback Address
+		"fc00::/7",      //RFC 4193: Unique-Local
+		"fe80::/10",     //RFC 4291: Section 2.5.6 Link-Scoped Unicast
+		"ff00::/8",      //RFC 4291: Section 2.7
 	} {
 		_, block, err := net.ParseCIDR(cidr)
 		if err != nil {
