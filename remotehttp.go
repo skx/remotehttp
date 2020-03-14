@@ -17,6 +17,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -26,6 +27,9 @@ var (
 
 	// Cached store of network/netmask to IP-range - IPv6
 	ip6Ranges map[string]*net.IPNet
+
+	// Helper to setup our cache-maps only once.
+	setup sync.Once
 )
 
 // _isLocalIP tests whether the IP address to which we've connected is a local one.
@@ -64,9 +68,9 @@ func _isLocalIP(IP net.IP) error {
 	//
 	// This saves time if we're going to test multiple hostnames/URIs
 	// with this same object.
-	if len(ip4Ranges) == 0 {
+	setup.Do(func() {
 
-		// Create map
+		// Create our maps
 		ip4Ranges = make(map[string]*net.IPNet)
 		ip6Ranges = make(map[string]*net.IPNet)
 
@@ -74,14 +78,11 @@ func _isLocalIP(IP net.IP) error {
 		tmp := localIP4
 		tmp = append(tmp, localIP6...)
 
-		// For each one.
+		// For each network-range.
 		for _, entry := range tmp {
 
 			// Parse
-			_, block, err := net.ParseCIDR(entry)
-			if err != nil {
-				return err
-			}
+			_, block, _ := net.ParseCIDR(entry)
 
 			// Record in the protocol-specific range
 			if strings.Contains(entry, ":") {
@@ -90,7 +91,7 @@ func _isLocalIP(IP net.IP) error {
 				ip4Ranges[entry] = block
 			}
 		}
-	}
+	})
 
 	// The map we're testing from
 	testMap := ip4Ranges
