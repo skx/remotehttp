@@ -19,10 +19,15 @@ import (
 	"time"
 )
 
+var (
+	// Cached store of network/netmask to IP-range
+	ranges map[string]*net.IPNet
+)
+
 // _isLocalIP tests whether the IP address to which we've connected is a local one.
 func _isLocalIP(IP net.IP) error {
 
-	for _, cidr := range []string{
+	localIPs := []string{
 		// IPv4
 		"10.0.0.0/8",     // RFC1918
 		"100.64.0.0/10",  // RFC 6598
@@ -50,17 +55,37 @@ func _isLocalIP(IP net.IP) error {
 		"fc00::/7",      //RFC 4193: Unique-Local
 		"fe80::/10",     //RFC 4291: Section 2.5.6 Link-Scoped Unicast
 		"ff00::/8",      //RFC 4291: Section 2.7
-	} {
-		_, block, err := net.ParseCIDR(cidr)
-		if err != nil {
-			return err
+	}
+
+	// If we've not already parsed our CIDR range
+	if len(ranges) == 0 {
+
+		// Create map
+		ranges = make(map[string]*net.IPNet)
+
+		// Populate it.
+		for _, entry := range localIPs {
+
+			// Parse
+			_, block, err := net.ParseCIDR(entry)
+			if err != nil {
+				return err
+			}
+
+			// Record
+			ranges[entry] = block
 		}
+	}
+
+	// Loop over our blacklisted network-ranges
+	for _, block := range ranges {
 
 		if block.Contains(IP) {
 			return fmt.Errorf("ip address %s is denied as local", IP)
 		}
 	}
 
+	// Not found.
 	return nil
 }
 
