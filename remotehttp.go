@@ -16,55 +16,66 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 )
 
 var (
-	// Cached store of network/netmask to IP-range
-	ranges map[string]*net.IPNet
+	// Cached store of network/netmask to IP-range - IPv4
+	ip4Ranges map[string]*net.IPNet
+
+	// Cached store of network/netmask to IP-range - IPv6
+	ip6Ranges map[string]*net.IPNet
 )
 
 // _isLocalIP tests whether the IP address to which we've connected is a local one.
 func _isLocalIP(IP net.IP) error {
 
-	localIPs := []string{
-		// IPv4
-		"10.0.0.0/8",     // RFC1918
-		"100.64.0.0/10",  // RFC 6598
-		"127.0.0.0/8",    // IPv4 loopback
-		"169.254.0.0/16", // RFC3927 link-local
-		"172.16.0.0/12",  // RFC1918
-		"192.0.0.0/24",   //  RFC 5736
-		"192.0.2.0/24",   // RFC 5737
-		"192.168.0.0/16", // RFC1918
-		"192.18.0.0/15",  // RFC 2544
-		"192.88.99.0/24", // RFC 3068
-		"198.51.100.0/24",
-		"203.0.113.0/24",
+	localIP4 := []string{
+		"10.0.0.0/8",         // RFC1918
+		"100.64.0.0/10",      // RFC 6598
+		"127.0.0.0/8",        // IPv4 loopback
+		"169.254.0.0/16",     // RFC3927 link-local
+		"172.16.0.0/12",      // RFC1918
+		"192.0.0.0/24",       // RFC 5736
+		"192.0.2.0/24",       // RFC 5737
+		"192.168.0.0/16",     // RFC1918
+		"192.18.0.0/15",      // RFC 2544
+		"192.88.99.0/24",     // RFC 3068
+		"198.51.100.0/24",    //
+		"203.0.113.0/24",     //
 		"224.0.0.0/4",        // RFC 3171
 		"255.255.255.255/32", // RFC 919 Section 7
-
-		// IPv6
-		"::/128",        //RFC 4291: Unspecified Address
+	}
+	localIP6 := []string{
+		"::/128",        // RFC 4291: Unspecified Address
 		"100::/64",      // RFC 6666: Discard Address Block
 		"2001:2::/48",   // RFC 5180: Benchmarking
-		"2001::/23",     //RFC 2928: IETF Protocol Assignments
-		"2001::/32",     //RFC 4380: TEREDO
+		"2001::/23",     // RFC 2928: IETF Protocol Assignments
+		"2001::/32",     // RFC 4380: TEREDO
 		"2001:db8::/32", // RFC 3849: Documentation
 		"::1/128",       // RFC 4291: Loopback Address
-		"fc00::/7",      //RFC 4193: Unique-Local
-		"fe80::/10",     //RFC 4291: Section 2.5.6 Link-Scoped Unicast
-		"ff00::/8",      //RFC 4291: Section 2.7
+		"fc00::/7",      // RFC 4193: Unique-Local
+		"fe80::/10",     // RFC 4291: Section 2.5.6 Link-Scoped Unicast
+		"ff00::/8",      // RFC 4291: Section 2.7
 	}
 
-	// If we've not already parsed our CIDR range
-	if len(ranges) == 0 {
+	// If we've not already parsed our CIDR ranges into maps then do so.
+	//
+	// This saves time if we're going to test multiple hostnames/URIs
+	// with this same object.
+	if len(ip4Ranges) == 0 {
 
 		// Create map
-		ranges = make(map[string]*net.IPNet)
+		ip4Ranges = make(map[string]*net.IPNet)
+		ip6Ranges = make(map[string]*net.IPNet)
 
-		// Populate it.
-		for _, entry := range localIPs {
+		// Join our ranges.
+		tmp := localIP4
+		tmp = append(tmp, localIP6...)
+
+		// For each one.
+		for _, entry := range tmp {
 
 			// Parse
 			_, block, err := net.ParseCIDR(entry)
@@ -72,14 +83,25 @@ func _isLocalIP(IP net.IP) error {
 				return err
 			}
 
-			// Record
-			ranges[entry] = block
+			// Record in the protocol-specific range
+			if strings.Contains(entry, ":") {
+				ip6Ranges[entry] = block
+			} else {
+				ip4Ranges[entry] = block
+			}
 		}
 	}
 
-	// Loop over our blacklisted network-ranges
-	for _, block := range ranges {
+	// The map we're testing from
+	testMap := ip4Ranges
 
+	// Are we testing an IPv6 address?
+	if strings.Contains(IP.String(), ":") {
+		testMap = ip6Ranges
+	}
+
+	// Loop over the appropriate map and test for inclusion
+	for _, block := range testMap {
 		if block.Contains(IP) {
 			return fmt.Errorf("ip address %s is denied as local", IP)
 		}
