@@ -2,6 +2,7 @@ package remotehttp
 
 import (
 	"net/http"
+	"strings"
 	"testing"
 	"time"
 )
@@ -14,6 +15,7 @@ func TestLocalURLs(t *testing.T) {
 		"http://127.0.0.1/server-status",
 		"https://localhost/",
 		"https://127.0.127.127/",
+		"https://0.0.0.0/",
 		"http://169.254.169.254/latest/meta-data/public-keys/0/openssh-key",
 		"http://[fe80::1]:6379/",
 	}
@@ -36,6 +38,9 @@ func TestLocalURLs(t *testing.T) {
 		_, err = netClient.Do(req)
 		if err == nil {
 			t.Fatalf("Expected error requesting %s - expected to be denied", url)
+		}
+		if !strings.Contains(err.Error(), "denied as local") {
+			t.Fatalf("Received an error accessing %s, but not the expected one.  Got: %s", url, err.Error())
 		}
 	}
 }

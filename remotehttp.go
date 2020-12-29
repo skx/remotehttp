@@ -36,6 +36,7 @@ var (
 func _isLocalIP(IP net.IP) error {
 
 	localIP4 := []string{
+		"0.0.0.0/32",         // #9
 		"10.0.0.0/8",         // RFC1918
 		"100.64.0.0/10",      // RFC 6598
 		"127.0.0.0/8",        // IPv4 loopback
